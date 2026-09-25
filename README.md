@@ -10,6 +10,7 @@ The first version is focused on building a reliable proof of concept rather than
 
 ## Planned Features
 
+- Native Android application
 - Live camera input
 - Pose and body-landmark tracking
 - Joint-angle calculations
@@ -31,36 +32,40 @@ FormSense may evaluate factors such as:
 
 ## Planned Technology
 
-- **Python** — vision and analysis logic
-- **OpenCV** — video processing
+- **Kotlin** — primary Android language
+- **Jetpack Compose** — native Android user interface
+- **CameraX** — live camera input
 - **MediaPipe** — pose estimation and landmark tracking
-- **FastAPI** — backend/API layer
-- **React** — frontend interface
-- **Database** — users, sessions, repetitions, and feedback
-- **Git/GitHub** — version control and team collaboration
+- **Room / SQLite** — local session and progress storage
+- **Git / GitHub** — version control and team collaboration
 
-## My Role
-
-**Team Lead / Systems Engineer**
-
-I lead a four-person capstone team and help coordinate project scope, task ownership, system architecture, GitHub workflow, internal deadlines, and integration between the vision, frontend, backend, and analysis components.
+Additional backend or machine-learning services may be added later if the project needs them.
 
 ## Development Approach
 
-1. Establish reliable camera and pose tracking.
-2. Calculate useful joint angles from detected landmarks.
-3. Implement repetition counting.
-4. Add rule-based feedback for squat form.
-5. Connect the vision pipeline to the application backend and frontend.
-6. Add session history and expand to additional exercises.
+1. Build the main Android screens and navigation.
+2. Establish reliable CameraX input and pose tracking.
+3. Calculate useful joint angles from detected landmarks.
+4. Implement repetition counting.
+5. Add rule-based feedback for squat form.
+6. Save session results and show progress/history.
+7. Expand to additional exercises.
 
 A machine-learning good/bad-form classifier may be explored later if enough useful training data is available.
+
+## Git Workflow
+
+- `main` — stable/demo-ready code
+- `dev` — shared development/integration branch
+- `feature/<name>` — individual feature branches
+
+Create feature branches from `dev`, push them to GitHub, and merge them back into `dev` with pull requests. Merge `dev` into `main` when the team has a stable milestone.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the team workflow.
 
 ## Status
 
 **Active development — Fall 2026 Missouri S&T capstone project.**
-
-This repository will be updated as implementation progresses.
 
 ## Disclaimer
 
