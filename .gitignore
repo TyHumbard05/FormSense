@@ -1,4 +1,31 @@
-# Python
+# Android / Gradle
+.gradle/
+build/
+**/build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Signing / secrets
+*.jks
+*.keystore
+keystore.properties
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Kotlin / JVM
+out/
+*.class
+
+# Python (if used for experiments/tools)
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -8,20 +35,12 @@ env/
 .pytest_cache/
 .mypy_cache/
 
-# Environment / secrets
-.env
-.env.*
-!.env.example
-
-# Node / React
+# Node (if used for tooling)
 node_modules/
 dist/
-build/
 .vite/
 
-# IDE / OS
-.vscode/
-.idea/
+# OS
 .DS_Store
 Thumbs.db
 
