@@ -53,6 +53,8 @@ Additional backend or machine-learning services may be added later if the projec
 
 A machine-learning good/bad-form classifier may be explored later if enough useful training data is available.
 
+For the detailed, ordered frontend/backend plan, milestones, integration contract, and release checklist, see the [Application Development Roadmap](docs/APP_DEVELOPMENT_ROADMAP.md).
+
 ## Git Workflow
 
 - `main` — stable/demo-ready code
@@ -66,6 +68,31 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the team workflow.
 ## Status
 
 **Active development — Fall 2026 Missouri S&T capstone project.**
+
+The `feature/ui-shell` branch contains the first local-first Android MVP foundation:
+
+- Home, exercise setup, live session, results, history, progress, and settings screens
+- Room-backed sessions and repetition scores that survive app restarts
+- DataStore-backed target-repetition, haptic, and keep-screen-awake preferences
+- CameraX preview, permission handling, and latest-frame analysis pipeline
+- A scripted posture analyzer that drives reps, form scores, joint angles, and feedback
+- Automatic completion at the target repetition count and persisted result navigation
+- Hilt dependency injection, lifecycle-aware ViewModels, unit tests, and Android lint
+
+## Run the App
+
+1. Open the repository root in Android Studio.
+2. Allow Gradle to sync with JDK 21 and the installed Android SDK.
+3. Select a Pixel emulator running API 24 or newer.
+4. Run the `app` configuration.
+
+From a terminal with `JAVA_HOME` pointing to JDK 21 and the Android SDK configured, build and verify with:
+
+```bash
+./gradlew assembleDebug testDebugUnitTest lintDebug
+```
+
+The current analyzer is deterministic and simulated. It receives CameraX frames but closes them without inspecting pixels, so the full app flow can be developed and tested before the production posture model is ready. Raw camera frames and video are not persisted.
 
 ## Disclaimer
 
