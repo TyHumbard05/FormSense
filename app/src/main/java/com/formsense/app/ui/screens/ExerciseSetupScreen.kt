@@ -28,9 +28,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.formsense.app.data.model.ExerciseType
 import com.formsense.app.ui.components.PrimaryButton
+import com.formsense.app.ui.theme.FormSenseTheme
 import com.formsense.app.ui.theme.FormBlue
 import com.formsense.app.ui.theme.FormBlueSoft
 import com.formsense.app.ui.theme.SurfaceBorder
@@ -165,5 +167,16 @@ private fun SetupStep(
                 )
             }
         }
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun ExerciseSetupScreenPreview() {
+    FormSenseTheme {
+        ExerciseSetupScreen(
+            exercise = ExerciseType.Squat,
+            onBack = {},
+            onStart = {},
+        )
     }
 }

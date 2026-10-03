@@ -20,9 +20,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.formsense.app.data.model.ExerciseType
 import com.formsense.app.ui.components.ExerciseCard
+import com.formsense.app.ui.theme.FormSenseTheme
 
 @Composable
 fun ExerciseSelectionScreen(
@@ -71,3 +73,14 @@ fun ExerciseSelectionScreen(
         }
     }
 }
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun ExerciseSelectionScreenPreview() {
+    FormSenseTheme {
+        ExerciseSelectionScreen(
+            onBack = {},
+            onExerciseSelected = {},
+        )
+    }
+}
+

@@ -44,16 +44,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import com.formsense.app.data.model.ExerciseType
 import com.formsense.app.data.model.FeedbackSeverity
+import com.formsense.app.data.model.FormFeedback
 import com.formsense.app.ui.components.FeedbackCard
 import com.formsense.app.ui.components.MetricCard
 import com.formsense.app.ui.components.SectionHeader
 import com.formsense.app.ui.camera.CameraPreviewSurface
+import com.formsense.app.ui.theme.FormSenseTheme
 import com.formsense.app.ui.theme.Danger
 import com.formsense.app.ui.theme.FormBlue
 import com.formsense.app.ui.theme.Success
@@ -304,6 +307,35 @@ private fun CameraPreviewPlaceholder(
             modifier = Modifier.align(Alignment.BottomCenter).padding(14.dp),
             color = Color.White.copy(alpha = 0.75f),
             style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun SessionScreenPreview() {
+    FormSenseTheme {
+        SessionScreen(
+            state = SessionUiState(
+                exercise = ExerciseType.Squat,
+                targetReps = 12,
+                repCount = 5,
+                formScore = 88,
+                kneeAngleDegrees = 95,
+                hipAngleDegrees = 100,
+                elapsedSeconds = 42,
+                feedback = listOf(
+                    FormFeedback(
+                        code = "good_depth",
+                        title = "Good depth",
+                        message = "Maintain this hip alignment",
+                        severity = FeedbackSeverity.Positive,
+                    ),
+                ),
+            ),
+            onBack = {},
+            onEndSession = {},
+            onRetryAnalyzer = {},
+            onCameraFrame = {},
         )
     }
 }

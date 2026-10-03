@@ -32,9 +32,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.formsense.app.navigation.Routes
 import com.formsense.app.ui.components.FormSenseBottomBar
+import com.formsense.app.ui.theme.FormSenseTheme
 import com.formsense.app.ui.profile.ProfileUiState
 import com.formsense.app.ui.theme.Danger
 import com.formsense.app.ui.theme.SurfaceBorder
@@ -235,5 +237,23 @@ private fun SettingSwitchRow(
             )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun ProfileScreenPreview() {
+    FormSenseTheme {
+        ProfileScreen(
+            state = ProfileUiState(
+                defaultTargetReps = 10,
+                hapticFeedbackEnabled = true,
+                keepScreenAwake = true,
+            ),
+            onDeleteAllSessions = {},
+            onDefaultTargetRepsChanged = {},
+            onHapticFeedbackChanged = {},
+            onKeepScreenAwakeChanged = {},
+            onBottomDestination = {},
+        )
     }
 }

@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.style.TextAlign
+import com.formsense.app.ui.theme.FormSenseTheme
 import androidx.compose.ui.unit.dp
 import com.formsense.app.ui.components.FormSenseBottomBar
 import com.formsense.app.ui.theme.FormBlue
@@ -58,5 +60,17 @@ fun PlaceholderScreen(
                 textAlign = TextAlign.Center,
             )
         }
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun PlaceholderScreenPreview() {
+    FormSenseTheme {
+        PlaceholderScreen(
+            title = "Under Construction",
+            message = "This feature is coming soon to FormSense.",
+            selectedRoute = "placeholder",
+            onBottomDestination = {},
+        )
     }
 }

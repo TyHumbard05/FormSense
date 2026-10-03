@@ -19,12 +19,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.formsense.app.navigation.Routes
 import com.formsense.app.ui.components.FormSenseBottomBar
 import com.formsense.app.ui.components.MetricCard
 import com.formsense.app.ui.components.SectionHeader
 import com.formsense.app.ui.progress.ProgressUiState
+import com.formsense.app.ui.theme.FormSenseTheme
+import com.formsense.app.data.model.ExerciseType
+import com.formsense.app.data.model.RecentSession
 
 @Composable
 fun ProgressScreen(
@@ -131,5 +135,33 @@ fun ProgressScreen(
                 }
             }
         }
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun ProgressScreenPreview() {
+    val sampleSession = RecentSession(
+        id = 1L,
+        exercise = ExerciseType.Squat,
+        startedAtMillis = System.currentTimeMillis() - 300_000,
+        endedAtMillis = System.currentTimeMillis(),
+        targetReps = 10,
+        completedReps = 10,
+        averageScore = 85,
+        repScores = listOf(80, 85, 90),
+        modelVersion = "v1.0",
+    )
+    FormSenseTheme {
+        ProgressScreen(
+            state = ProgressUiState(
+                isLoading = false,
+                sessionCount = 14,
+                totalReps = 156,
+                averageScore = 86,
+                bestScore = 96,
+                sessions = listOf(sampleSession),
+            ),
+            onBottomDestination = {},
+        )
     }
 }
