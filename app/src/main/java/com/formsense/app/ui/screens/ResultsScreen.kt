@@ -48,11 +48,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.formsense.app.data.model.ExerciseType
 import com.formsense.app.data.model.RecentSession
 import com.formsense.app.ui.components.RecentSessionCard
 import com.formsense.app.ui.components.SectionHeader
+import com.formsense.app.ui.theme.FormSenseTheme
 import com.formsense.app.ui.theme.FormBlue
 import com.formsense.app.ui.theme.FormBlueSoft
 import com.formsense.app.ui.theme.Success
@@ -99,7 +101,7 @@ fun ResultsScreen(
                 )
             }
             item {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(modifier = Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(
                         modifier = Modifier.size(92.dp).background(FormBlueSoft, CircleShape),
                         contentAlignment = Alignment.Center,
@@ -390,5 +392,33 @@ private fun ScoreTrendCard(scores: List<Int>) {
                 }
             }
         }
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun ResultsScreenPreview() {
+    val sampleSession = RecentSession(
+        id = 1L,
+        exercise = ExerciseType.Squat,
+        startedAtMillis = System.currentTimeMillis() - 300_000,
+        endedAtMillis = System.currentTimeMillis(),
+        targetReps = 12,
+        completedReps = 12,
+        averageScore = 88,
+        repScores = listOf(85, 90, 88, 82, 92, 86, 90, 88, 85, 90, 94, 88),
+        modelVersion = "v1.0",
+    )
+    FormSenseTheme {
+        ResultsScreen(
+            state = ResultsUiState(
+                isLoading = false,
+                session = sampleSession,
+                recentSessions = listOf(sampleSession),
+            ),
+            onTryAgain = {},
+            onReturnHome = {},
+            onSessionSelected = {},
+            onDeleteSession = {},
+        )
     }
 }
