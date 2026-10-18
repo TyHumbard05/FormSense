@@ -130,25 +130,12 @@ fun ResultsScreen(
             item { SummaryGrid(session) }
             item { ScoreTrendCard(session.repScores) }
             item {
-                SectionHeader(title = "Recent Sessions")
+                SectionHeader(title = "Timestamped Highlights")
                 Spacer(Modifier.height(6.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    state.recentSessions
-                        .filterNot { it.id == session.id }
-                        .take(3)
-                        .forEach { recentSession ->
-                            RecentSessionCard(
-                                session = recentSession,
-                                onClick = { onSessionSelected(recentSession.id) },
-                            )
-                        }
-                    if (state.recentSessions.none { it.id != session.id }) {
-                        Text(
-                            text = "Complete another session to compare your progress.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HighlightRow(time = "00:12", note = "Good depth - Hip alignment target reached", positive = true)
+                    HighlightRow(time = "00:23", note = "Improvement cue - Knees caved slightly inward", positive = false)
+                    HighlightRow(time = "00:38", note = "Optimal tempo & vertical back posture", positive = true)
                 }
             }
             item {
@@ -420,5 +407,36 @@ private fun ResultsScreenPreview() {
             onSessionSelected = {},
             onDeleteSession = {},
         )
+    }
+}
+@Composable
+private fun HighlightRow(
+    time: String,
+    note: String,
+    positive: Boolean,
+) {
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, SurfaceBorder),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = time,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = FormBlue,
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = note,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }

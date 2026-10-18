@@ -48,6 +48,9 @@ fun SignUpScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPassword by remember { mutableStateOf("") }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -104,6 +107,25 @@ fun SignUpScreen(
                 },
                 singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+            )
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = { Text("Confirm Password") },
+                leadingIcon = { Icon(Icons.Rounded.Lock, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                        Icon(
+                            imageVector = if (confirmPasswordVisible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                            contentDescription = null,
+                        )
+                    }
+                },
+                singleLine = true,
+                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,

@@ -3,6 +3,9 @@ package com.formsense.app.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -27,6 +30,7 @@ import com.formsense.app.ui.screens.ProgressScreen
 import com.formsense.app.ui.screens.ResultsScreen
 import com.formsense.app.ui.screens.SessionScreen
 import com.formsense.app.ui.screens.SessionsScreen
+import com.formsense.app.ui.screens.SettingsScreen
 import com.formsense.app.ui.screens.SignUpScreen
 import com.formsense.app.ui.session.SessionEvent
 import com.formsense.app.ui.session.SessionViewModel
@@ -43,6 +47,7 @@ object Routes {
     const val Sessions = "sessions"
     const val Progress = "progress"
     const val Profile = "profile"
+    const val Settings = "settings"
 
     fun session(exercise: ExerciseType) = "session/${exercise.routeName}"
     fun exerciseSetup(exercise: ExerciseType) = "exercise-setup/${exercise.routeName}"
@@ -51,6 +56,8 @@ object Routes {
 
 @Composable
 fun FormSenseNavGraph(navController: NavHostController = rememberNavController()) {
+    var isGuestUser by remember { mutableStateOf(false) }
+
     fun openTopLevel(route: String) {
         navController.navigate(route) {
             popUpTo(navController.graph.findStartDestination().id) {
@@ -78,11 +85,13 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
         composable(Routes.Login) {
             LoginScreen(
                 onLoginSuccess = {
+                    isGuestUser = false
                     navController.navigate(Routes.Home) {
                         popUpTo(Routes.Login) { inclusive = true }
                     }
                 },
                 onContinueAsGuest = {
+                    isGuestUser = true
                     navController.navigate(Routes.Home) {
                         popUpTo(Routes.Login) { inclusive = true }
                     }
@@ -96,6 +105,7 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
         composable(Routes.SignUp) {
             SignUpScreen(
                 onSignupSuccess = {
+                    isGuestUser = false
                     navController.navigate(Routes.Home) {
                         popUpTo(Routes.SignUp) { inclusive = true }
                     }
@@ -114,7 +124,7 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
                 onStartSession = { navController.navigate(Routes.ExerciseSelection) },
                 onExerciseSelected = { navController.navigate(Routes.exerciseSetup(it)) },
                 onBottomDestination = (::openTopLevel),
-                onSettings = { openTopLevel(Routes.Profile) },
+                onSettings = { navController.navigate(Routes.Settings) },
             )
         }
 
@@ -209,15 +219,31 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
         }
 
         composable(Routes.Profile) {
+            ProfileScreen(
+                onOpenSettings = { navController.navigate(Routes.Settings) },
+                onBottomDestination = (::openTopLevel),
+            )
+        }
+
+        composable(Routes.Settings) {
             val viewModel = hiltViewModel<ProfileViewModel>()
             val state by viewModel.uiState.collectAsStateWithLifecycle()
-            ProfileScreen(
+            SettingsScreen(
                 state = state,
+                onBack = navController::navigateUp,
                 onDeleteAllSessions = viewModel::deleteAllSessions,
                 onDefaultTargetRepsChanged = viewModel::setDefaultTargetReps,
                 onHapticFeedbackChanged = viewModel::setHapticFeedbackEnabled,
                 onKeepScreenAwakeChanged = viewModel::setKeepScreenAwake,
-                onBottomDestination = (::openTopLevel),
+                onSignOut = {
+                    if (isGuestUser) {
+                        viewModel.deleteAllSessions()
+                        isGuestUser = false
+                    }
+                    navController.navigate(Routes.Login) {
+                        popUpTo(Routes.Home) { inclusive = true }
+                    }
+                },
             )
         }
     }
