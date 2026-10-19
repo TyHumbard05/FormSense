@@ -11,6 +11,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +23,9 @@ import com.formsense.app.ui.components.FormSenseBottomBar
 import com.formsense.app.ui.components.RecentSessionCard
 import com.formsense.app.ui.history.HistoryUiState
 import com.formsense.app.ui.theme.FormBlue
+import com.formsense.app.ui.theme.FormSenseTheme
+import com.formsense.app.data.model.ExerciseType
+import com.formsense.app.data.model.RecentSession
 
 @Composable
 fun SessionsScreen(
@@ -94,6 +98,31 @@ private fun EmptyHistory() {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
+        )
+    }
+}
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun SessionsScreenPreview() {
+    val sampleSession = RecentSession(
+        id = 1L,
+        exercise = ExerciseType.Squat,
+        startedAtMillis = System.currentTimeMillis() - 300_000,
+        endedAtMillis = System.currentTimeMillis(),
+        targetReps = 12,
+        completedReps = 12,
+        averageScore = 89,
+        repScores = listOf(88, 90, 89),
+        modelVersion = "v1.0",
+    )
+    FormSenseTheme {
+        SessionsScreen(
+            state = HistoryUiState(
+                isLoading = false,
+                sessions = listOf(sampleSession, sampleSession.copy(id = 2L, averageScore = 82)),
+            ),
+            onSessionSelected = {},
+            onBottomDestination = {},
         )
     }
 }
