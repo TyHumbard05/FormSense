@@ -1,55 +1,66 @@
 package com.formsense.app.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.rounded.FitnessCenter
+import androidx.compose.material.icons.rounded.Height
+import androidx.compose.material.icons.rounded.MonitorWeight
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.formsense.app.navigation.Routes
 import com.formsense.app.ui.components.FormSenseBottomBar
-import com.formsense.app.ui.profile.ProfileUiState
-import com.formsense.app.ui.theme.Danger
+import com.formsense.app.ui.theme.FormBlue
+import com.formsense.app.ui.theme.FormBlueSoft
+import com.formsense.app.ui.theme.FormSenseTheme
 import com.formsense.app.ui.theme.SurfaceBorder
 
 @Composable
 fun ProfileScreen(
-    state: ProfileUiState,
-    onDeleteAllSessions: () -> Unit,
-    onDefaultTargetRepsChanged: (Int) -> Unit,
-    onHapticFeedbackChanged: (Boolean) -> Unit,
-    onKeepScreenAwakeChanged: (Boolean) -> Unit,
+    onOpenSettings: () -> Unit,
     onBottomDestination: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf("") }
+    var age by remember { mutableStateOf("") }
+    var weight by remember { mutableStateOf("") }
+    var height by remember { mutableStateOf("") }
+    var goal by remember { mutableStateOf("") }
+
+    // Exercise Max Weights
+    var squatMaxWeight by remember { mutableStateOf("") }
+    var bicepMaxWeight by remember { mutableStateOf("") }
+    var shoulderMaxWeight by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -65,175 +76,267 @@ fun ProfileScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Header with Settings Button
             item {
-                Text(
-                    text = "Profile & Settings",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                )
-                Text(
-                    text = "FormSense currently stores workout history only on this device.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            item {
-                Surface(
-                    shape = MaterialTheme.shapes.large,
-                    border = BorderStroke(1.dp, SurfaceBorder),
-                    color = MaterialTheme.colorScheme.surface,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(
-                        modifier = Modifier.padding(18.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp),
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Session defaults",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Target repetitions", style = MaterialTheme.typography.titleMedium)
-                                Text(
-                                    "Used when a new session starts",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            IconButton(
-                                onClick = { onDefaultTargetRepsChanged(state.defaultTargetReps - 1) },
-                                enabled = state.defaultTargetReps > 1,
-                            ) {
-                                Icon(Icons.Rounded.Remove, contentDescription = "Decrease target repetitions")
-                            }
-                            Text(
-                                state.defaultTargetReps.toString(),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                            )
-                            IconButton(
-                                onClick = { onDefaultTargetRepsChanged(state.defaultTargetReps + 1) },
-                                enabled = state.defaultTargetReps < 50,
-                            ) {
-                                Icon(Icons.Rounded.Add, contentDescription = "Increase target repetitions")
-                            }
-                        }
-                        SettingSwitchRow(
-                            title = "Haptic rep feedback",
-                            description = "Vibrate briefly when a repetition completes",
-                            checked = state.hapticFeedbackEnabled,
-                            onCheckedChange = onHapticFeedbackChanged,
-                        )
-                        SettingSwitchRow(
-                            title = "Keep screen awake",
-                            description = "Prevent the display from sleeping during a session",
-                            checked = state.keepScreenAwake,
-                            onCheckedChange = onKeepScreenAwakeChanged,
-                        )
-                    }
-                }
-            }
-            item {
-                Surface(
-                    shape = MaterialTheme.shapes.large,
-                    border = BorderStroke(1.dp, SurfaceBorder),
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                    Column(
-                        modifier = Modifier.padding(18.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(Icons.Rounded.Lock, contentDescription = null)
-                        Text(
-                            text = "Privacy by default",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
+                            text = "My Profile",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.ExtraBold,
                         )
                         Text(
-                            text = "The current prototype saves session scores and repetition counts. It does not store camera frames or videos.",
+                            text = "Tap any box to update your details & PRs.",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                    IconButton(onClick = onOpenSettings) {
+                        Icon(
+                            imageVector = Icons.Rounded.Settings,
+                            contentDescription = "Open App Settings",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                        )
+                    }
                 }
             }
+
+            // Editable User Name & Avatar Card
+            item {
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    border = BorderStroke(1.dp, SurfaceBorder),
+                    color = MaterialTheme.colorScheme.surface,
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .background(FormBlueSoft, CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Person,
+                                contentDescription = null,
+                                tint = FormBlue,
+                                modifier = Modifier.size(32.dp),
+                            )
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = { Text("Full Name") },
+                            placeholder = { Text("e.g. John Doe", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                        )
+                    }
+                }
+            }
+
+            // Editable Physical Details Grid Cards
             item {
                 Text(
-                    text = "FormSense is an academic exercise-coaching prototype. It does not provide medical diagnosis or replace professional care.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = "Physical Statistics",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
                 )
             }
+
             item {
-                OutlinedButton(
-                    onClick = { showDeleteConfirmation = true },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !state.isDeleting,
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Icon(Icons.Rounded.DeleteForever, contentDescription = null)
-                    Text(if (state.isDeleting) "Deleting…" else "Delete all session data")
+                    ProfileStatCard(
+                        label = "Age",
+                        value = age,
+                        onValueChange = { age = it },
+                        placeholder = "e.g. 24",
+                        icon = Icons.Rounded.Person,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ProfileStatCard(
+                        label = "Weight",
+                        value = weight,
+                        onValueChange = { weight = it },
+                        placeholder = "e.g. 165 lbs",
+                        icon = Icons.Rounded.MonitorWeight,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
-            state.message?.let { message ->
-                item {
-                    Text(
-                        text = message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ProfileStatCard(
+                        label = "Height",
+                        value = height,
+                        onValueChange = { height = it },
+                        placeholder = "e.g. 5' 10\"",
+                        icon = Icons.Rounded.Height,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ProfileStatCard(
+                        label = "Primary Goal",
+                        value = goal,
+                        onValueChange = { goal = it },
+                        placeholder = "e.g. Squats",
+                        icon = Icons.Rounded.FitnessCenter,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+
+            // Exercise Max Weight / Personal Bests Section
+            item {
+                Text(
+                    text = "Exercise Max Weights & PRs",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ExerciseRecordRow(
+                        exerciseName = "Squat",
+                        maxWeight = squatMaxWeight,
+                        onMaxWeightChange = { squatMaxWeight = it },
+                        placeholder = "e.g. 185 lbs",
+                        bestScore = "94%",
+                    )
+                    ExerciseRecordRow(
+                        exerciseName = "Bicep Curl",
+                        maxWeight = bicepMaxWeight,
+                        onMaxWeightChange = { bicepMaxWeight = it },
+                        placeholder = "e.g. 45 lbs",
+                        bestScore = "88%",
+                    )
+                    ExerciseRecordRow(
+                        exerciseName = "Shoulder Raise",
+                        maxWeight = shoulderMaxWeight,
+                        onMaxWeightChange = { shoulderMaxWeight = it },
+                        placeholder = "e.g. 30 lbs",
+                        bestScore = "90%",
                     )
                 }
             }
         }
     }
+}
 
-    if (showDeleteConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
-            title = { Text("Delete all sessions?") },
-            text = { Text("This permanently removes the locally saved workout history from this device.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirmation = false
-                        onDeleteAllSessions()
-                    },
-                ) {
-                    Text("Delete", color = Danger)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
-                }
-            },
-        )
+@Composable
+private fun ProfileStatCard(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    icon: ImageVector,
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, SurfaceBorder),
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier.size(38.dp).background(FormBlueSoft, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = FormBlue, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.width(10.dp))
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.small,
+            )
+        }
     }
 }
 
 @Composable
-private fun SettingSwitchRow(
-    title: String,
-    description: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+private fun ExerciseRecordRow(
+    exerciseName: String,
+    maxWeight: String,
+    onMaxWeightChange: (String) -> Unit,
+    placeholder: String,
+    bestScore: String,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, SurfaceBorder),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier.size(42.dp).background(FormBlueSoft, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.FitnessCenter,
+                    contentDescription = null,
+                    tint = FormBlue,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = exerciseName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Best Form: $bestScore",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            OutlinedTextField(
+                value = maxWeight,
+                onValueChange = onMaxWeightChange,
+                label = { Text("Max Weight") },
+                placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                singleLine = true,
+                modifier = Modifier.width(130.dp),
+                shape = MaterialTheme.shapes.small,
             )
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Preview(showBackground = true, widthDp = 420, heightDp = 900)
+@Composable
+private fun ProfileScreenPreview() {
+    FormSenseTheme {
+        ProfileScreen(
+            onOpenSettings = {},
+            onBottomDestination = {},
+        )
     }
 }
