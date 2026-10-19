@@ -66,8 +66,9 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
                 state = state,
                 onStartSession = { navController.navigate(Routes.ExerciseSelection) },
                 onExerciseSelected = { navController.navigate(Routes.exerciseSetup(it)) },
-                onBottomDestination =(::openTopLevel),
-                onSettings = { openTopLevel(Routes.Profile) },
+                onSessionSelected = { sessionId -> navController.navigate(Routes.results(sessionId)) }, // FIX: Pass onSessionSelected
+                onBottomDestination = (::openTopLevel),
+                onSettings = { navController.navigate(Routes.Settings) },
             )
         }
         composable(Routes.ExerciseSelection) {
