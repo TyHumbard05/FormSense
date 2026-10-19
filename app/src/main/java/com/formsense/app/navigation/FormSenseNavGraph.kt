@@ -123,6 +123,7 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
                 state = state,
                 onStartSession = { navController.navigate(Routes.ExerciseSelection) },
                 onExerciseSelected = { navController.navigate(Routes.exerciseSetup(it)) },
+                onSessionSelected = { sessionId -> navController.navigate(Routes.results(sessionId)) }, // FIX: Pass onSessionSelected
                 onBottomDestination = (::openTopLevel),
                 onSettings = { navController.navigate(Routes.Settings) },
             )

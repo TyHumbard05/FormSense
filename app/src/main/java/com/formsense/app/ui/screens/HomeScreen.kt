@@ -40,20 +40,22 @@ import com.formsense.app.ui.components.FormSenseBottomBar
 import com.formsense.app.ui.components.PrimaryButton
 import com.formsense.app.ui.components.RecentSessionCard
 import com.formsense.app.ui.components.SectionHeader
+import com.formsense.app.ui.home.HomeUiState
 import com.formsense.app.ui.theme.FormBlue
 import com.formsense.app.ui.theme.FormBlueDark
 import com.formsense.app.ui.theme.FormBlueSoft
 import com.formsense.app.ui.theme.FormSenseTheme
-import com.formsense.app.ui.home.HomeUiState
 
 @Composable
 fun HomeScreen(
-    state: HomeUiState,
-    onStartSession: () -> Unit,
-    onExerciseSelected: (ExerciseType) -> Unit,
-    onBottomDestination: (String) -> Unit,
-    onSettings: () -> Unit,
     modifier: Modifier = Modifier,
+state: HomeUiState,
+onStartSession: () -> Unit,
+onExerciseSelected: (ExerciseType) -> Unit,
+onSessionSelected: (Long) -> Unit = {}, // Added default = {}
+onBottomDestination: (String) -> Unit,
+onSettings: () -> Unit,
+
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -90,12 +92,15 @@ fun HomeScreen(
                 }
             }
             item { HeroPanel() }
+
+            // CREATE NEW WORKOUT BUTTON
             item {
                 PrimaryButton(
-                    text = "Start a Session",
+                    text = "Start a New Workout",
                     onClick = onStartSession,
                 )
             }
+
             item {
                 SectionHeader(
                     title = "Choose an Exercise",
@@ -117,6 +122,8 @@ fun HomeScreen(
                     }
                 }
             }
+
+            // VIEW RECENT CREATED WORKOUTS
             item {
                 SectionHeader(
                     title = "Recent Activity",
@@ -138,7 +145,11 @@ fun HomeScreen(
                         )
                         state.recentSessions.isEmpty() -> EmptyRecentActivity()
                         else -> state.recentSessions.forEach { session ->
-                            RecentSessionCard(session = session)
+                            // Tapping card opens the past workout
+                            RecentSessionCard(
+                                session = session,
+                                onClick = { onSessionSelected(session.id) },
+                            )
                         }
                     }
                 }
@@ -237,6 +248,7 @@ private fun HomeScreenPreview() {
             state = HomeUiState(isLoading = false),
             onStartSession = {},
             onExerciseSelected = {},
+            onSessionSelected = {},
             onBottomDestination = {},
             onSettings = {},
         )
