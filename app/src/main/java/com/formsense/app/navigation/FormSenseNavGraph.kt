@@ -23,6 +23,9 @@ import com.formsense.app.ui.results.ResultsViewModel
 import com.formsense.app.ui.screens.ExerciseSelectionScreen
 import com.formsense.app.ui.screens.ExerciseSetupScreen
 import com.formsense.app.ui.screens.HomeScreen
+import com.formsense.app.ui.screens.CreateWorkoutScreen
+import com.formsense.app.ui.screens.WorkoutExerciseItem
+import com.formsense.app.ui.screens.WorkoutDetailScreen
 import com.formsense.app.ui.screens.LoadingScreen
 import com.formsense.app.ui.screens.LoginScreen
 import com.formsense.app.ui.screens.ProfileScreen
@@ -48,6 +51,9 @@ object Routes {
     const val Progress = "progress"
     const val Profile = "profile"
     const val Settings = "settings"
+    const val CreateWorkout = "create-workout"
+
+    const val WorkoutDetail = "workout-detail"
 
     fun session(exercise: ExerciseType) = "session/${exercise.routeName}"
     fun exerciseSetup(exercise: ExerciseType) = "exercise-setup/${exercise.routeName}"
@@ -121,9 +127,9 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
             val state by viewModel.uiState.collectAsStateWithLifecycle()
             HomeScreen(
                 state = state,
-                onStartSession = { navController.navigate(Routes.ExerciseSelection) },
+                onStartSession = { navController.navigate(Routes.WorkoutDetail) }, // Opens Workout Storage Screen
                 onExerciseSelected = { navController.navigate(Routes.exerciseSetup(it)) },
-                onSessionSelected = { sessionId -> navController.navigate(Routes.results(sessionId)) }, // FIX: Pass onSessionSelected
+                onSessionSelected = { sessionId -> navController.navigate(Routes.results(sessionId)) },
                 onBottomDestination = (::openTopLevel),
                 onSettings = { navController.navigate(Routes.Settings) },
             )
@@ -244,6 +250,25 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
                     navController.navigate(Routes.Login) {
                         popUpTo(Routes.Home) { inclusive = true }
                     }
+                },
+            )
+        }
+        composable(Routes.CreateWorkout) {
+            CreateWorkoutScreen(
+                onBack = navController::navigateUp,
+                onSaveWorkout = { title, exercises ->
+                    navController.navigate(Routes.Home) {
+                        popUpTo(Routes.Home) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(Routes.WorkoutDetail) {
+            WorkoutDetailScreen(
+                onBack = navController::navigateUp,
+                onCreateWorkout = { navController.navigate(Routes.CreateWorkout) }, // Navigates to CreateWorkoutScreen
+                onWorkoutSelected = { workoutId ->
+                    navController.navigate(Routes.ExerciseSelection)
                 },
             )
         }
