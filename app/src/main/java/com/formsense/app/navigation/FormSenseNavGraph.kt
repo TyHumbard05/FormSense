@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.formsense.app.data.model.ExerciseType
+import com.formsense.app.ui.auth.AuthViewModel
 import com.formsense.app.ui.history.HistoryViewModel
 import com.formsense.app.ui.home.HomeViewModel
 import com.formsense.app.ui.profile.ProfileViewModel
@@ -89,34 +90,51 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
         }
 
         composable(Routes.Login) {
+            val authViewModel = hiltViewModel<AuthViewModel>()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+
             LoginScreen(
-                onLoginSuccess = {
-                    isGuestUser = false
-                    navController.navigate(Routes.Home) {
-                        popUpTo(Routes.Login) { inclusive = true }
+                errorMessage = authState.loginError,
+                isLoading = authState.isLoading,
+                onLoginSubmit = { email, password ->
+                    authViewModel.login(email, password) {
+                        isGuestUser = false
+                        navController.navigate(Routes.Home) {
+                            popUpTo(Routes.Login) { inclusive = true }
+                        }
                     }
                 },
                 onContinueAsGuest = {
                     isGuestUser = true
+                    authViewModel.clearErrors()
                     navController.navigate(Routes.Home) {
                         popUpTo(Routes.Login) { inclusive = true }
                     }
                 },
                 onNavigateToSignUp = {
+                    authViewModel.clearErrors()
                     navController.navigate(Routes.SignUp)
                 },
             )
         }
 
         composable(Routes.SignUp) {
+            val authViewModel = hiltViewModel<AuthViewModel>()
+            val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+
             SignUpScreen(
-                onSignupSuccess = {
-                    isGuestUser = false
-                    navController.navigate(Routes.Home) {
-                        popUpTo(Routes.SignUp) { inclusive = true }
+                errorMessage = authState.signUpError,
+                isLoading = authState.isLoading,
+                onSignupSubmit = { name, email, password, confirmPassword ->
+                    authViewModel.signUp(name, email, password, confirmPassword) {
+                        isGuestUser = false
+                        navController.navigate(Routes.Home) {
+                            popUpTo(Routes.SignUp) { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToLogin = {
+                    authViewModel.clearErrors()
                     navController.navigateUp()
                 },
             )
@@ -226,7 +244,11 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
         }
 
         composable(Routes.Profile) {
+            val viewModel = hiltViewModel<ProfileViewModel>()
+            val state by viewModel.uiState.collectAsStateWithLifecycle()
             ProfileScreen(
+                state = state,
+                onNameChanged = viewModel::updateUserName,
                 onOpenSettings = { navController.navigate(Routes.Settings) },
                 onBottomDestination = (::openTopLevel),
             )
@@ -243,6 +265,7 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
                 onHapticFeedbackChanged = viewModel::setHapticFeedbackEnabled,
                 onKeepScreenAwakeChanged = viewModel::setKeepScreenAwake,
                 onSignOut = {
+                    viewModel.signOut()
                     if (isGuestUser) {
                         viewModel.deleteAllSessions()
                         isGuestUser = false

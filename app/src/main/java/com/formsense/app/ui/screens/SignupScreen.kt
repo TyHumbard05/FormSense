@@ -12,8 +12,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -41,16 +44,18 @@ import com.formsense.app.ui.theme.FormSenseTheme
 
 @Composable
 fun SignUpScreen(
-    onSignupSuccess: () -> Unit,
+    onSignupSubmit: (name: String, email: String, password: String, confirmPassword: String) -> Unit,
     onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier,
+    errorMessage: String? = null,
+    isLoading: Boolean = false,
 ) {
+    var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPassword by remember { mutableStateOf("") }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-
 
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
@@ -76,6 +81,32 @@ fun SignUpScreen(
             )
 
             Spacer(Modifier.height(16.dp))
+
+            if (!errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+            }
+
+            // Name Input
+            OutlinedTextField(
+                value = fullName,
+                onValueChange = { fullName = it },
+                label = { Text("Full Name") },
+                leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    capitalization = KeyboardCapitalization.Words,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+            )
+
+            Spacer(Modifier.height(14.dp))
 
             // Email Input
             OutlinedTextField(
@@ -111,6 +142,10 @@ fun SignUpScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
             )
+
+            Spacer(Modifier.height(14.dp))
+
+            // Confirm Password Input
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -133,11 +168,19 @@ fun SignUpScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            // Sign Up Button
-            PrimaryButton(
-                text = "Create Account",
-                onClick = onSignupSuccess,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
+            } else {
+                // Sign Up Button
+                PrimaryButton(
+                    text = "Create Account",
+                    onClick = { onSignupSubmit(fullName, email, password, confirmPassword) },
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -165,7 +208,7 @@ fun SignUpScreen(
 private fun SignUpScreenPreview() {
     FormSenseTheme {
         SignUpScreen(
-            onSignupSuccess = {},
+            onSignupSubmit = { _, _, _, _ -> },
             onNavigateToLogin = {},
         )
     }

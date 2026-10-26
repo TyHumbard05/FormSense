@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,10 +40,12 @@ import com.formsense.app.ui.theme.FormSenseTheme
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSubmit: (email: String, password: String) -> Unit,
     onContinueAsGuest: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     modifier: Modifier = Modifier,
+    errorMessage: String? = null,
+    isLoading: Boolean = false,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -71,6 +74,15 @@ fun LoginScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(Modifier.height(32.dp))
+
+            if (!errorMessage.isNullOrBlank()) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+            }
 
             // Email Input
             OutlinedTextField(
@@ -108,11 +120,19 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(16.dp))
 
-            // Sign In Button
-            PrimaryButton(
-                text = "Sign In",
-                onClick = onLoginSuccess,
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
+            } else {
+                // Sign In Button
+                PrimaryButton(
+                    text = "Sign In",
+                    onClick = { onLoginSubmit(email, password) },
+                )
+            }
 
             Spacer(Modifier.height(16.dp))
 
@@ -147,7 +167,7 @@ fun LoginScreen(
 private fun LoginScreenPreview() {
     FormSenseTheme {
         LoginScreen(
-            onLoginSuccess = {},
+            onLoginSubmit = { _, _ -> },
             onContinueAsGuest = {},
             onNavigateToSignUp = {},
         )
