@@ -28,10 +28,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.formsense.app.ui.profile.ProfileUiState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -50,8 +52,17 @@ fun ProfileScreen(
     onOpenSettings: () -> Unit,
     onBottomDestination: (String) -> Unit,
     modifier: Modifier = Modifier,
+    state: ProfileUiState = ProfileUiState(),
+    onNameChanged: (String) -> Unit = {},
 ) {
-    var name by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf(state.userName) }
+
+    LaunchedEffect(state.userName) {
+        if (state.userName.isNotBlank()) {
+            name = state.userName
+        }
+    }
+
     var age by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
@@ -131,7 +142,10 @@ fun ProfileScreen(
                         Spacer(Modifier.width(14.dp))
                         OutlinedTextField(
                             value = name,
-                            onValueChange = { name = it },
+                            onValueChange = {
+                                name = it
+                                onNameChanged(it)
+                            },
                             label = { Text("Full Name") },
                             placeholder = { Text("e.g. John Doe", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                             singleLine = true,

@@ -3,9 +3,10 @@ package com.formsense.app.di
 import android.content.Context
 import androidx.room.Room
 import com.formsense.app.data.local.FormSenseDatabase
+import com.formsense.app.data.local.dao.UserDao
+import com.formsense.app.data.repository.DataStoreSettingsRepository
 import com.formsense.app.data.repository.RoomSessionRepository
 import com.formsense.app.data.repository.SessionRepository
-import com.formsense.app.data.repository.DataStoreSettingsRepository
 import com.formsense.app.data.repository.SettingsRepository
 import com.formsense.app.domain.analyzer.FakePostureAnalyzer
 import com.formsense.app.domain.analyzer.PostureAnalyzer
@@ -44,5 +45,11 @@ object DatabaseModule {
         context,
         FormSenseDatabase::class.java,
         "formsense.db",
-    ).build()
+    )
+        .fallbackToDestructiveMigration(true) // needs a migration function for updates
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideUserDao(database: FormSenseDatabase): UserDao = database.userDao()
 }

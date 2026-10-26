@@ -6,6 +6,7 @@ data class AppSettings(
     val defaultTargetReps: Int = 12,
     val hapticFeedbackEnabled: Boolean = true,
     val keepScreenAwake: Boolean = true,
+    val activeUserId: Long? = null,
 )
 
 interface SettingsRepository {
@@ -16,4 +17,6 @@ interface SettingsRepository {
     suspend fun setHapticFeedbackEnabled(enabled: Boolean)
 
     suspend fun setKeepScreenAwake(enabled: Boolean)
+
+    suspend fun setActiveUserId(userId: Long?)
 }
