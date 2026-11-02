@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.camera.core.ImageProxy
+import android.util.Log
+import com.formsense.app.data.remote.WebSocketClient
 import com.formsense.app.data.model.CompletedSessionDraft
 import com.formsense.app.data.model.ExerciseType
 import com.formsense.app.data.model.FormFeedback
@@ -39,6 +41,7 @@ data class SessionUiState(
     val usesSimulatedAnalysis: Boolean = true,
     val hapticFeedbackEnabled: Boolean = true,
     val keepScreenAwake: Boolean = true,
+    val isWebSocketConnected: Boolean = false,
 )
 
 sealed interface SessionEvent {
@@ -51,6 +54,7 @@ class SessionViewModel @Inject constructor(
     private val sessionRepository: SessionRepository,
     settingsRepository: SettingsRepository,
     private val postureAnalyzer: PostureAnalyzer,
+    private val webSocketClient: WebSocketClient,
 ) : ViewModel() {
     private val exercise = ExerciseType.fromRoute(savedStateHandle["exercise"])
     private val startedAtMillis = System.currentTimeMillis()
@@ -66,6 +70,21 @@ class SessionViewModel @Inject constructor(
     private var analyzerJob: Job? = null
 
     init {
+        // Connect to Flask camera socket when user enters the session screen
+        webSocketClient.connect()
+
+        viewModelScope.launch {
+            webSocketClient.isConnected.collect { connected ->
+                _uiState.update { it.copy(isWebSocketConnected = connected) }
+            }
+        }
+
+        viewModelScope.launch {
+            webSocketClient.messages.collect { message ->
+                Log.d("SessionViewModel", "Socket message from Flask: $message")
+            }
+        }
+
         startAnalyzer()
         viewModelScope.launch {
             while (true) {
@@ -92,6 +111,7 @@ class SessionViewModel @Inject constructor(
     fun finishSession() {
         if (_uiState.value.isSaving) return
 
+        webSocketClient.disconnect()
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
             analyzerJob?.cancel()
@@ -127,6 +147,11 @@ class SessionViewModel @Inject constructor(
         if (analyzerJob?.isActive == true || _uiState.value.isSaving) return
         _uiState.update { it.copy(errorMessage = null) }
         startAnalyzer()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        webSocketClient.disconnect()
     }
 
     private fun startAnalyzer() {

@@ -101,6 +101,7 @@ fun SessionScreen(
                 CameraPreviewPlaceholder(
                     elapsedSeconds = state.elapsedSeconds,
                     usesSimulatedAnalysis = state.usesSimulatedAnalysis,
+                    isWebSocketConnected = state.isWebSocketConnected,
                     onCameraFrame = onCameraFrame,
                 )
             }
@@ -218,6 +219,7 @@ private fun SessionTopBar(
 private fun CameraPreviewPlaceholder(
     elapsedSeconds: Long,
     usesSimulatedAnalysis: Boolean,
+    isWebSocketConnected: Boolean,
     onCameraFrame: (ImageProxy) -> Unit,
 ) {
     Box(
@@ -286,17 +288,33 @@ private fun CameraPreviewPlaceholder(
             Text("Tracking…", color = Color.White, fontWeight = FontWeight.SemiBold)
         }
 
-        Text(
-            text = "%02d:%02d".format(elapsedSeconds / 60, elapsedSeconds % 60),
+        Row(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(14.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xB31A2230))
-                .padding(horizontal = 12.dp, vertical = 7.dp),
-            color = Color.White,
-            style = MaterialTheme.typography.titleLarge,
-        )
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .background(if (isWebSocketConnected) Success else Danger, CircleShape)
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = if (isWebSocketConnected) "Socket Live" else "Socket Offline",
+                color = Color.White,
+                style = MaterialTheme.typography.labelSmall,
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = "%02d:%02d".format(elapsedSeconds / 60, elapsedSeconds % 60),
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
 
         Text(
             text = if (usesSimulatedAnalysis) {

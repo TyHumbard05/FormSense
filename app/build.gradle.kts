@@ -55,6 +55,8 @@ dependencies {
     val roomVersion = "2.8.5"
     val hiltVersion = "2.60.1"
 
+    implementation("com.squareup.okhttp3:okhttp:5.5.1")
+
     implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
