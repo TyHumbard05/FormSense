@@ -8,14 +8,21 @@ def create_app():
 
     @sock.route("/api/camera_socket")
     def websocket(ws):
-        while True:
-            message = ws.receive()
-            if message:
-                ws.send(message)
-            
+        print("🟢 WebSocket Client Connected!", flush=True)
+        try:
+            while True:
+                message = ws.receive()
+                if message is None:
+                    break
+                print(f"📩 Received: {message}", flush=True)
+                ws.send(f"Echo from Flask: {message}")
+        except Exception as e:
+            print(f"⚠️ WebSocket Error: {e}", flush=True)
+        finally:
+            print("🔴 WebSocket Client Disconnected", flush=True)
 
     return app
 
 
 if __name__ == "__main__":
-    create_app().run(host="0.0.0.0", port=5000)
+    create_app().run(host="0.0.0.0", port=5000, debug=False, threaded=True)

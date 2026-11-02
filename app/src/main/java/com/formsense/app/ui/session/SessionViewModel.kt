@@ -71,6 +71,7 @@ class SessionViewModel @Inject constructor(
 
     init {
         // Connect to Flask camera socket when user enters the session screen
+        Log.d("SessionViewModel", "Connecting to Flask camera socket")
         webSocketClient.connect()
 
         viewModelScope.launch {

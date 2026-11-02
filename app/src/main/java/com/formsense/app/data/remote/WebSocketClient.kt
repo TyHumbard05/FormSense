@@ -33,6 +33,9 @@ class WebSocketClient @Inject constructor(
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
     fun connect() {
+
+        Log.d("WebSocketClient", "Connecting to Flask socket at $socketUrl")
+
         if (_isConnected.value) return
 
         val request = Request.Builder()
@@ -43,6 +46,7 @@ class WebSocketClient @Inject constructor(
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Log.d("WebSocketClient", "Connected to Flask socket at $socketUrl")
                 _isConnected.value = true
+                webSocket.send("Handshake: Android client connected")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {

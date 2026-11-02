@@ -79,8 +79,18 @@ The `feature/ui-shell` branch contains the first local-first Android MVP foundat
 - Automatic completion at the target repetition count and persisted result navigation
 - Hilt dependency injection, lifecycle-aware ViewModels, unit tests, and Android lint
 
-## Run the App
+## Run the App & Backend
 
+### 1. Start the Python Backend Server
+Before running the Android app (or when testing real-time WebSocket features), start the local Flask backend server:
+```bash
+cd backend
+pip install -r requirements.txt
+python app.py
+```
+This runs the WebSocket server on `http://0.0.0.0:5000` (accessible from the Android emulator at `ws://10.0.2.2:5000/api/camera_socket`).
+
+### 2. Run the Android App
 1. Open the repository root in Android Studio.
 2. Allow Gradle to sync with JDK 21 and the installed Android SDK.
 3. Select a Pixel emulator running API 24 or newer.
