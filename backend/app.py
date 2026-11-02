@@ -10,9 +10,9 @@ def create_app():
     def websocket(ws):
         while True:
             message = ws.receive()
-            if message is None:
-                break
-            ws.send(message)
+            if message:
+                ws.send(message)
+            
 
     return app
 
