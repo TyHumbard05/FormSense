@@ -86,7 +86,13 @@ fun SessionScreen(
         }
     }
 
-    Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
+    Scaffold(modifier = modifier.fillMaxSize(),topBar = {
+        SessionTopBar(
+            title = "${state.exercise.displayName} Session",
+            onBack = onBack,
+        )
+    },
+        ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp),

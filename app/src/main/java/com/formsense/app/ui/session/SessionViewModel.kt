@@ -36,7 +36,7 @@ data class SessionUiState(
     val elapsedSeconds: Long = 0,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
-    val usesSimulatedAnalysis: Boolean = true,
+    val usesSimulatedAnalysis: Boolean = false,
     val hapticFeedbackEnabled: Boolean = true,
     val keepScreenAwake: Boolean = true,
 )
