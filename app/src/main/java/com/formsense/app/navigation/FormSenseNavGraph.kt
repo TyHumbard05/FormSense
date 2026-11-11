@@ -266,9 +266,9 @@ fun FormSenseNavGraph(navController: NavHostController = rememberNavController()
         composable(Routes.WorkoutDetail) {
             WorkoutDetailScreen(
                 onBack = navController::navigateUp,
-                onCreateWorkout = { navController.navigate(Routes.CreateWorkout) }, // Navigates to CreateWorkoutScreen
-                onWorkoutSelected = { workoutId ->
-                    navController.navigate(Routes.ExerciseSelection)
+                onCreateWorkout = { navController.navigate(Routes.CreateWorkout) },
+                onStartWorkoutSession = { exercise ->
+                    navController.navigate(Routes.session(exercise))
                 },
             )
         }
