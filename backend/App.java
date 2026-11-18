@@ -1,95 +1,88 @@
 //JAVA 17+
-//DEPS org.eclipse.jetty.websocket:jetty-websocket-jetty-server:12.1.15
-//DEPS org.slf4j:slf4j-simple:2.0.17
+//DEPS org.java-websocket:Java-WebSocket:1.5.7
+// Run from repository root: jbang backend/App.java
 
-// From the repository root: jbang backend/App.java
-
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.imageio.ImageIO;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
-import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.websocket.api.Callback;
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler;
+public final class App extends WebSocketServer {
+    private static final int PORT = Integer.parseInt(System.getenv().getOrDefault("FORMSENSE_PORT", "5000"));
+    private final AtomicLong frameCounter = new AtomicLong();
 
-public class App {
-    private static final String CAMERA_SOCKET_PATH = "/api/camera_socket";
+    public App() { super(new InetSocketAddress("0.0.0.0", PORT)); setReuseAddr(true); }
 
     public static void main(String[] args) throws Exception {
-        Server server = createApp();
-        server.setStopAtShutdown(true);
+        App server = new App();
         server.start();
-        server.join();
+        System.out.println("FormSense Java WebSocket backend listening on port " + PORT);
+        System.out.println("Endpoint: ws://0.0.0.0:" + PORT + "/api/camera_socket");
+        System.out.println("Android emulator: ws://10.0.2.2:" + PORT + "/api/camera_socket");
+        System.out.println("Press Ctrl+C to stop.");
     }
 
-    public static Server createApp() {
-        Server server = new Server(new InetSocketAddress("0.0.0.0", 5000));
-        WebSocketUpgradeHandler webSockets = WebSocketUpgradeHandler.from(server, container -> {
-            // Match the Flask socket's lack of an idle timeout or message size limit.
-            container.setIdleTimeout(Duration.ZERO);
-            container.setMaxFrameSize(0);
-            container.setMaxTextMessageSize(0);
-            container.setMaxBinaryMessageSize(0);
-            container.addMapping(CAMERA_SOCKET_PATH, (request, response, callback) -> new CameraSocket());
-        });
-        webSockets.setHandler(new Handler.Abstract() {
-            @Override
-            public boolean handle(Request request, Response response, org.eclipse.jetty.util.Callback callback) {
-                if (!CAMERA_SOCKET_PATH.equals(request.getHttpURI().getCanonicalPath())) {
-                    return false;
-                }
-                switch (request.getMethod()) {
-                    case "GET", "HEAD", "OPTIONS" ->
-                        Response.writeError(request, response, callback, HttpStatus.BAD_REQUEST_400);
-                    default -> {
-                        response.getHeaders().put(HttpHeader.ALLOW, "GET, HEAD, OPTIONS");
-                        Response.writeError(request, response, callback, HttpStatus.METHOD_NOT_ALLOWED_405);
-                    }
-                }
-                return true;
-            }
-        });
-        server.setHandler(webSockets);
-        return server;
+    @Override public void onOpen(WebSocket connection, ClientHandshake handshake) {
+        if (!"/api/camera_socket".equals(handshake.getResourceDescriptor())) {
+            connection.close(1008, "Unknown WebSocket endpoint"); return;
+        }
+        System.out.println("[CONNECT] " + connection.getRemoteSocketAddress());
+        sendJson(connection, "{\"type\":\"connected\",\"message\":\"FormSense Java backend connected\"}");
     }
 
-    public static final class CameraSocket implements Session.Listener {
-        private Session session;
+    @Override public void onMessage(WebSocket connection, String message) {
+        System.out.println("[ANDROID -> BACKEND] " + message);
+        sendJson(connection, "{\"type\":\"message_received\",\"message\":\"" + jsonEscape(message) + "\"}");
+    }
 
-        @Override
-        public void onWebSocketOpen(Session session) {
-            this.session = session;
-            session.demand();
+    @Override public void onMessage(WebSocket connection, ByteBuffer bytes) {
+        ByteBuffer data = bytes.slice();
+        byte[] jpeg = new byte[data.remaining()]; data.get(jpeg);
+        long frameId = frameCounter.incrementAndGet();
+        int width = -1, height = -1; boolean validJpeg = false;
+        try {
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(jpeg));
+            if (image != null) { width = image.getWidth(); height = image.getHeight(); validJpeg = true; }
+        } catch (Exception error) {
+            System.err.println("[FRAME " + frameId + "] JPEG decode failed: " + error.getMessage());
         }
+        System.out.printf("[CAMERA FRAME %d] %s, %d bytes, %dx%d%n", frameId,
+            validJpeg ? "valid JPEG" : "unrecognized image", jpeg.length, width, height);
+        sendJson(connection, String.format(
+            "{\"type\":\"camera_frame_received\",\"frameId\":%d,\"validJpeg\":%s,\"byteCount\":%d,\"width\":%d,\"height\":%d}",
+            frameId, validJpeg, jpeg.length, width, height));
+    }
 
-        @Override
-        public void onWebSocketText(String message) {
-            if (message.isEmpty()) {
-                session.demand();
-                return;
+    @Override public void onClose(WebSocket connection, int code, String reason, boolean remote) {
+        System.out.printf("[DISCONNECT] code=%d reason=%s remote=%s%n", code, reason, remote);
+    }
+    @Override public void onError(WebSocket connection, Exception error) {
+        System.err.println("[WEBSOCKET ERROR] " + error.getMessage());
+        if (error != null) error.printStackTrace(System.err);
+    }
+    @Override public void onStart() {
+        System.out.println("[READY] ws://0.0.0.0:" + PORT + "/api/camera_socket");
+    }
+    private static void sendJson(WebSocket socket, String json) {
+        if (socket != null && socket.isOpen()) socket.send(json);
+    }
+    private static String jsonEscape(String value) {
+        StringBuilder out = new StringBuilder();
+        for (int i=0; i<value.length(); i++) {
+            char c=value.charAt(i);
+            switch(c) {
+                case '"' -> out.append("\\\""); case '\\' -> out.append("\\\\");
+                case '\b' -> out.append("\\b"); case '\f' -> out.append("\\f");
+                case '\n' -> out.append("\\n"); case '\r' -> out.append("\\r");
+                case '\t' -> out.append("\\t");
+                default -> { if(c<0x20) out.append(String.format("\\u%04x", (int)c)); else out.append(c); }
             }
-            session.sendText(message, Callback.from(session::demand, failure -> session.disconnect()));
         }
-
-        @Override
-        public void onWebSocketBinary(ByteBuffer message, Callback received) {
-            if (!message.hasRemaining()) {
-                received.succeed();
-                session.demand();
-                return;
-            }
-
-            // Keep Jetty's receive buffer valid until the asynchronous echo completes.
-            session.sendBinary(message, Callback.from(() -> {
-                received.succeed();
-                session.demand();
-            }, received::fail));
-        }
+        return out.toString();
     }
 }
