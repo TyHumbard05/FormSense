@@ -8,8 +8,8 @@ import com.formsense.app.data.repository.DataStoreSettingsRepository
 import com.formsense.app.data.repository.RoomSessionRepository
 import com.formsense.app.data.repository.SessionRepository
 import com.formsense.app.data.repository.SettingsRepository
-import com.formsense.app.domain.analyzer.FakePostureAnalyzer
 import com.formsense.app.domain.analyzer.PostureAnalyzer
+import com.formsense.app.domain.analyzer.WebSocketPostureAnalyzer
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -31,7 +31,7 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindPostureAnalyzer(analyzer: FakePostureAnalyzer): PostureAnalyzer
+    abstract fun bindPostureAnalyzer(analyzer: WebSocketPostureAnalyzer): PostureAnalyzer
 }
 
 @Module
