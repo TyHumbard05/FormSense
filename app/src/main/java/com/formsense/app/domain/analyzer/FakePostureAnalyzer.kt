@@ -43,7 +43,7 @@ class FakePostureAnalyzer @Inject constructor() : PostureAnalyzer {
             delay(900)
             val scoreIndex = (tick / 2).coerceAtMost(scores.lastIndex)
             val completed = tick % 2 == 1
-            val repCount = ((tick + 1) / 2).coerceAtMost(scores.size)
+            val repCount = 0
             val score = scores[scoreIndex]
             val aligned = score >= 84
 
@@ -72,7 +72,7 @@ class FakePostureAnalyzer @Inject constructor() : PostureAnalyzer {
                             )
                         },
                     ),
-                    completedRepScore = score.takeIf { completed },
+                    completedRepScore = null,
                 ),
             )
             tick++

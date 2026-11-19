@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -45,6 +46,22 @@ fun CameraPreviewSurface(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val isInInspectionMode = LocalInspectionMode.current
+
+    if (isInInspectionMode) {
+        Box(
+            modifier = modifier.background(Color(0xFF202A38)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Camera Preview",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+            )
+        }
+        return
+    }
+
     var hasPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==

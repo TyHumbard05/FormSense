@@ -81,28 +81,56 @@ The `feature/ui-shell` branch contains the first local-first Android MVP foundat
 
 ## Run the App & Backend
 
-### 1. Start the Python Backend Server
-Before running the Android app (or when testing real-time WebSocket features), start the local Flask backend server:
-```bash
-cd backend
-pip install -r requirements.txt
-python app.py
+### 1. Start the Java WebSocket Backend
+
+Install JDK 17 or newer and JBang. From the repository root, run:
+
+```powershell
+jbang backend/App.java
 ```
-This runs the WebSocket server on `http://0.0.0.0:5000` (accessible from the Android emulator at `ws://10.0.2.2:5000/api/camera_socket`).
+
+The server listens on port `5000` at `ws://localhost:5000/api/camera_socket`.
+The Android emulator connects through `ws://10.0.2.2:5000/api/camera_socket`.
+For a physical Android device, change `socketUrl` in
+`app/src/main/java/com/formsense/app/data/remote/WebSocketClient.kt` to your
+computer's LAN IP address and allow inbound TCP port `5000` through the firewall.
+
+You may need to setup ADB Reverse in order for the backend to communicate with your
+pc from the emulator as the communicating packets will be silently dropped by your firewall.
+To do this do the following:
+
+In Android Studio's top toolbar, click the run configuration dropdown (next to the green Run triangle, usually labeled app) and select Edit Configurations....
+
+Scroll down to the Before launch section at the bottom and click + → Run External Tool.
+
+In the popup, click + to create a new tool and fill in:
+
+Name: ADB Reverse 5000
+
+Program: C:\Users\<YourUsername>\AppData\Local\Android\Sdk\platform-tools\adb.exe (click the folder icon to browse straight to AppData\Local\Android\Sdk\platform-tools\adb.exe)
+
+Arguments: reverse tcp:5000 tcp:5000
+
+Click OK → OK → Apply.
 
 ### 2. Run the Android App
+
 1. Open the repository root in Android Studio.
 2. Allow Gradle to sync with JDK 21 and the installed Android SDK.
 3. Select a Pixel emulator running API 24 or newer.
-4. Run the `app` configuration.
+4. Start the Java backend, then run the `app` configuration.
 
-From a terminal with `JAVA_HOME` pointing to JDK 21 and the Android SDK configured, build and verify with:
+### WebSocket message protocol
 
-```bash
-./gradlew assembleDebug testDebugUnitTest lintDebug
-```
+- Android sends JSON text messages for `session_start`, `session_end`, and camera-frame metadata.
+- Android sends JPEG camera frames as WebSocket binary messages (up to 5 frames/second).
+- Java acknowledges text messages with `message_received` JSON.
+- Java decodes each JPEG, logs its dimensions, and responds with `camera_frame_received` JSON.
+- The Android session screen displays the latest backend response.
 
-The current analyzer is deterministic and simulated. It receives CameraX frames but closes them without inspecting pixels, so the full app flow can be developed and tested before the production posture model is ready. Raw camera frames and video are not persisted.
+This is a transport/integration baseline: it verifies that real CameraX frames and two-way messages reach the Java backend. It does not yet run pose estimation or return real exercise metrics; connect the Java frame handler to your team's pose-analysis implementation when ready. Camera frames are streamed in memory and are not written to disk by this backend.
+
+The current Android posture analyzer remains deterministic and simulated. It receives CameraX frames but closes them without inspecting pixels, so the full app flow can be developed and tested before the production posture model is ready.
 
 ## Disclaimer
 

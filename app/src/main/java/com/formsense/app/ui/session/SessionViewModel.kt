@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.camera.core.ImageProxy
+import android.os.SystemClock
 import android.util.Log
+import com.formsense.app.data.remote.CameraFrameEncoder
 import com.formsense.app.data.remote.WebSocketClient
 import com.formsense.app.data.model.CompletedSessionDraft
 import com.formsense.app.data.model.ExerciseType
@@ -38,10 +40,11 @@ data class SessionUiState(
     val elapsedSeconds: Long = 0,
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
-    val usesSimulatedAnalysis: Boolean = true,
+    val usesSimulatedAnalysis: Boolean = false,
     val hapticFeedbackEnabled: Boolean = true,
     val keepScreenAwake: Boolean = true,
     val isWebSocketConnected: Boolean = false,
+    val lastBackendMessage: String? = null,
 )
 
 sealed interface SessionEvent {
@@ -60,6 +63,7 @@ class SessionViewModel @Inject constructor(
     private val startedAtMillis = System.currentTimeMillis()
     private val progressTracker = SessionProgressTracker(targetReps = DEFAULT_TARGET_REPS)
     private var modelVersion = "unknown"
+    private var lastCameraFrameSentAt = 0L
 
     private val _uiState = MutableStateFlow(SessionUiState(exercise = exercise))
     val uiState = _uiState.asStateFlow()
@@ -70,19 +74,23 @@ class SessionViewModel @Inject constructor(
     private var analyzerJob: Job? = null
 
     init {
-        // Connect to Flask camera socket when user enters the session screen
-        Log.d("SessionViewModel", "Connecting to Flask camera socket")
+        // Connect to the Java WebSocket backend when the session starts.
+        Log.d("SessionViewModel", "Connecting to Java camera socket")
         webSocketClient.connect()
 
         viewModelScope.launch {
             webSocketClient.isConnected.collect { connected ->
                 _uiState.update { it.copy(isWebSocketConnected = connected) }
+                if (connected) {
+                    webSocketClient.sendMessage("""{"type":"session_start","exercise":"${exercise.name}","targetReps":${_uiState.value.targetReps}}""")
+                }
             }
         }
 
         viewModelScope.launch {
             webSocketClient.messages.collect { message ->
-                Log.d("SessionViewModel", "Socket message from Flask: $message")
+                Log.d("SessionViewModel", "Socket message from server: $message")
+                _uiState.update { it.copy(lastBackendMessage = message) }
             }
         }
 
@@ -112,6 +120,7 @@ class SessionViewModel @Inject constructor(
     fun finishSession() {
         if (_uiState.value.isSaving) return
 
+        webSocketClient.sendMessage("""{"type":"session_end","exercise":"${exercise.name}","reps":${_uiState.value.repCount}}""")
         webSocketClient.disconnect()
         _uiState.update { it.copy(isSaving = true, errorMessage = null) }
         viewModelScope.launch {
@@ -141,6 +150,21 @@ class SessionViewModel @Inject constructor(
     }
 
     fun submitCameraFrame(frame: ImageProxy) {
+        // Encode before handing the ImageProxy to the analyzer, which owns/closes it.
+        // Limit network traffic to five JPEG frames per second.
+        val now = SystemClock.elapsedRealtime()
+        if (webSocketClient.isConnected.value && now - lastCameraFrameSentAt >= CAMERA_SEND_INTERVAL_MS) {
+            lastCameraFrameSentAt = now
+            runCatching { CameraFrameEncoder.toJpeg(frame) }
+                .onSuccess { jpeg ->
+                    if (jpeg != null) {
+                        val metadata = """{"type":"camera_frame_metadata","timestampNanos":${frame.imageInfo.timestamp},"rotationDegrees":${frame.imageInfo.rotationDegrees},"width":${frame.width},"height":${frame.height}}"""
+                        webSocketClient.sendMessage(metadata)
+                        webSocketClient.sendCameraFrame(jpeg)
+                    }
+                }
+                .onFailure { error -> Log.w("SessionViewModel", "Camera JPEG encoding failed: ${error.message}") }
+        }
         postureAnalyzer.submitFrame(frame)
     }
 
@@ -192,5 +216,6 @@ class SessionViewModel @Inject constructor(
 
     private companion object {
         const val DEFAULT_TARGET_REPS = 12
+        const val CAMERA_SEND_INTERVAL_MS = 200L
     }
 }

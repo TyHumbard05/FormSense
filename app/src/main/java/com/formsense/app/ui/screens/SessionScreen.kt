@@ -151,6 +151,13 @@ fun SessionScreen(
                         )
                     }
                     SectionHeader(title = "Live Feedback")
+                    state.lastBackendMessage?.let { message ->
+                        Text(
+                            text = "Backend: $message",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                     state.feedback.forEach { feedback ->
                         FeedbackCard(
                             title = feedback.title,
